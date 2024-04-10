@@ -13,9 +13,9 @@ KSHOST=""
 #KSHOST="k8sw01" # example Worker node
 
 # Example utilising external variables ${node_name} and ${count}
-# NODE=${node_name}
-# COUNT=${count}
-# KSHOST="k8s-$NODE-$COUNT"
+NODE=${node_name}
+COUNT=${count}
+KSHOST="k8s-$NODE-$COUNT"
 
 # ----------------
 # VARIABLES
@@ -315,14 +315,14 @@ LaunchMaster()
 #     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
 #     sudo chown "$(id -u $USER)":"$(id -g $USER)" "$HOME"/.kube/config
 
-#     USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
+    USER="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
 #     USER=id -un # Get user running the script
 
     HOME_DIR=$(getent passwd "$USER" | awk -F ':' '{print $6}')
     mkdir -p "$HOME_DIR"/.kube/
     cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
     chown "$(id -u $USER)":"$(id -g $USER)" "$HOME_DIR"/.kube/config
-    #export KUBECONFIG="$HOME_DIR"/.kube/config
+#    export KUBECONFIG="$HOME_DIR"/.kube/config
 
 #    # Alternatively, if one is a root user, run this:
 #     export KUBECONFIG=/etc/kubernetes/admin.conf
