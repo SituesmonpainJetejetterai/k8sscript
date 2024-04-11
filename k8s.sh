@@ -321,6 +321,7 @@ LaunchMaster()
     HOME_DIR=$(getent passwd "$USER" | awk -F ':' '{print $6}')
     mkdir -p "$HOME_DIR"/.kube/
     cp -f /etc/kubernetes/admin.conf "$HOME_DIR"/.kube/config
+    chown "$(id -u $USER)":"$(id -g $USER)" "$HOME_DIR"/.kube
     chown "$(id -u $USER)":"$(id -g $USER)" "$HOME_DIR"/.kube/config
 
 #   https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/#append-home-kube-config-to-your-kubeconfig-environment-variable
