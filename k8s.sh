@@ -20,7 +20,8 @@ KSHOST="k8s-$NODE-$COUNT"
 # ----------------
 # VARIABLES
 
-FIREWALL="no"
+# FIREWALL="no"
+FIREWALL="yes"
 
 KADM_OPTIONS=""
 # uncomment for ignoring warnings if setup not running with recommended specs
@@ -258,8 +259,8 @@ nodeRegistration:
   taints:
     - effect: NoSchedule
       key: node-role.kubernetes.io/master
-    - effect: NoExecute
-      key: node.cilium.io/agent-not-ready
+#     - effect: NoExecute
+#       key: node.cilium.io/agent-not-ready
 localAPIEndpoint:
   advertiseAddress: "$IPADDR"
   bindPort: 6443
@@ -279,6 +280,7 @@ controlPlaneEndpoint: "$IPADDR:6443"
 apiServer:
   extraArgs:
     authorization-mode: "Node,RBAC"
+    enable-aggregator-routing: "true"
   certSANs:
     - "$IPADDR"
     - "$KSHOST"
@@ -290,9 +292,10 @@ kind: KubeletConfiguration
 cgroupDriver: systemd
 authentication:
   anonymous:
-    enabled: true
+    enabled: false
 authorization:
-  mode: AlwaysAllow
+  mode: Webhook
+#   mode: AlwaysAllow
 failSwapOn: false
 featureGates:
   NodeSwap: true
@@ -309,12 +312,6 @@ LaunchMaster()
         exit 1
     fi
 
-    # Run as a normal, non-root user/actor before configuring cluster
-
-#     mkdir -p "$HOME"/.kube
-#     sudo cp -f /etc/kubernetes/admin.conf "$HOME"/.kube/config
-#     sudo chown "$(id -u $ACTOR)":"$(id -g $ACTOR)" "$HOME"/.kube/config
-
     ACTOR="ec2-user" # AWS-specific, DO NOT USE IN PRODUCTION
 #     ACTOR=id -un # Get user/actor running the script
 
@@ -326,7 +323,6 @@ LaunchMaster()
 
 #   https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/#append-home-kube-config-to-your-kubeconfig-environment-variable
     echo "$KUBECONFIG" | grep -q ".*$HOME_DIR\/.kube\/config.*" || export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
-#     export KUBECONFIG="$KUBECONFIG":"$HOME_DIR"/.kube/config
 
 #    # Alternatively, if one is a root user/actor, run this:
 #     export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -334,8 +330,6 @@ LaunchMaster()
 
 CNI()
 {
-    # kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-
     # install Cilium CLI
     sudo dnf -y install go
     CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
@@ -435,8 +429,10 @@ Installk9s()
 
 Metrics()
 {
-    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
+
+#     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+#     kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
 }
 
 main()
