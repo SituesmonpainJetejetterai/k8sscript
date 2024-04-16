@@ -328,6 +328,11 @@ LaunchMaster()
 #     export KUBECONFIG=/etc/kubernetes/admin.conf
 }
 
+PatchCoreDNS()
+{
+    # Patch CoreDNS to tolerate a NoSchedule taint on Masters
+    kubectl patch deployment coredns -n kube-system --patch '{"spec": {"template": {"spec": {"tolerations": [{"key": "node-role.kubernetes.io/master", "operator": "Exists", "effect": "NoSchedule"}]}}}}'
+}
 CNI()
 {
     # install Cilium CLI
@@ -474,6 +479,8 @@ main()
     FixRole
     CNI
     WaitForNodeUP
+
+    PatchCoreDNS
 
     Metrics
 
