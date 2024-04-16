@@ -433,10 +433,16 @@ Installk9s()
 
 Metrics()
 {
-    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
 
+    # Loosely related: if a node.kubernetes.io/disk-pressure is set on a node, the node's /var/ directory has run out of storage.
+
+    # Is a deployment with a single instance
 #     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-#     kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
+
+    # The HA deployment requires at least 3 nodes to maintain qorum
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
+    # Patches deployment.apps/metrics-server to allow for k8s-self-signed certificates
+    kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
 }
 
 main()
