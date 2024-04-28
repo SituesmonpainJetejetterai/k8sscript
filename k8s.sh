@@ -332,6 +332,7 @@ PatchCoreDNS()
     # Patch CoreDNS to tolerate a NoSchedule taint on Masters
     kubectl patch deployment coredns -n kube-system --patch '{"spec": {"template": {"spec": {"tolerations": [{"key": "node-role.kubernetes.io/master", "operator": "Exists", "effect": "NoSchedule"}]}}}}'
 }
+
 CNI()
 {
     # install Cilium CLI
@@ -431,6 +432,22 @@ Installk9s()
     sudo dnf -y install k9s
 }
 
+InstallHAProxyIngressController()
+{
+    helm repo add haproxytech https://haproxytech.github.io/helm-charts
+    helm repo update
+
+#     helm install haproxy-kubernetes-ingress haproxytech/kubernetes-ingress --namespace haproxy-controller --set controller.kind=DaemonSet --set controller.ingressClass=haproxy --set controller.service.type=LoadBalancer --set controller.autoscaling.enabled=true
+    helm install haproxy-kubernetes-ingress haproxytech/kubernetes-ingress \
+      --create-namespace \
+      --namespace haproxy-controller \
+      --set controller.kind=DaemonSet \
+      --set controller.ingressClass=haproxy \
+      --set controller.service.type=LoadBalancer \
+      --set controller.gatewayControllerName=haproxy.org/gateway-controller \
+      --set controller.autoscaling.enabled=true
+}
+
 Metrics()
 {
 
@@ -486,6 +503,7 @@ main()
     WaitForNodeUP
 
     PatchCoreDNS
+    InstallHAProxyIngressController
 
     Metrics
 
