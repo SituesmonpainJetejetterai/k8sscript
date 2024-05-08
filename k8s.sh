@@ -441,6 +441,8 @@ InstallHAProxyIngressController()
     helm install haproxy-kubernetes-ingress haproxytech/kubernetes-ingress \
       --create-namespace \
       --namespace haproxy-controller \
+      --set controller.ingressClassResource.enabled=true \
+      --set controller.hostNetwork=true \
       --set controller.kind=DaemonSet \
       --set controller.ingressClass=haproxy \
       --set controller.service.type=LoadBalancer \
